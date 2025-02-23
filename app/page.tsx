@@ -7,6 +7,10 @@ import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { VoiceNotes } from '@/components/voice-notes';
+import { Conversation } from '@/components/conversation';
+
+
+
 
 export default function Page() {
   const [time, setTime] = useState(60 * 60); // 60 minutes in seconds
@@ -106,6 +110,9 @@ export default function Page() {
         </Card>
 
         {/* Voice Notes section will go here */}
+<Conversation />
+
+        
         {/* Progress tracking will go here */}
         {/* Spotify embed will go here */}
       </div>
