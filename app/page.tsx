@@ -38,16 +38,19 @@ export default function Page() {
   };
 
   const endSessionEarly = () => {
-    const completedMinutes = Math.floor((sessionDuration * 60 - time) / 60);
+    const completedMinutes = Math.ceil((sessionDuration * 60 - time) / 60);
     const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    setSessionHistory(prev => [...prev, {
-      time: currentTime,
-      description: focusText,
-      duration: completedMinutes
-    }]);
+    if (completedMinutes > 0) {
+      setSessionHistory(prev => [...prev, {
+        time: currentTime,
+        description: focusText,
+        duration: completedMinutes
+      }]);
+      
+      setCompletedMinutes(prev => prev + completedMinutes);
+    }
     
-    setCompletedMinutes(prev => prev + completedMinutes);
     setIsRunning(false);
     setTime(60 * 60);
     setFocusText('');

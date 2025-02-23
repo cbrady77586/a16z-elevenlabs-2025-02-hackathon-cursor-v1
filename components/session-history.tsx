@@ -12,11 +12,13 @@ interface SessionHistoryProps {
 }
 
 export function SessionHistory({ sessions }: SessionHistoryProps) {
-  if (!sessions) return null;
-  
-  return (
-    <div className="space-y-4">
-      <table className="w-full">
+    if (!sessions?.length) {
+      return <div className="text-center text-gray-500 py-4">No data found</div>;
+    }
+    
+    return (
+      <div className="space-y-4">
+        <table className="w-full">
         <thead>
           <tr className="text-left text-sm text-gray-500">
             <th className="w-8 pb-2"><input type="checkbox" /></th>
