@@ -8,9 +8,14 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { VoiceNotes } from '@/components/voice-notes';
 import { Conversation } from '@/components/conversation';
-import { Copy as CopyIcon, Share as ShareIcon, Trash as TrashIcon } from 'lucide-react'
+import { Copy as CopyIcon, Share as ShareIcon, Trash as TrashIcon } from 'lucide-react';
 import { SessionHistory } from '@/components/session-history';
 
+type Session = {
+  time: string;
+  description: string;
+  duration: number;
+};
 
 export default function Page() {
   const [time, setTime] = useState(60 * 60); // 60 minutes in seconds
@@ -21,14 +26,33 @@ export default function Page() {
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [completedMinutes, setCompletedMinutes] = useState(0);
   const [sessionDuration, setSessionDuration] = useState(0);
+  const [sessionHistory, setSessionHistory] = useState<Array<{
+    time: string;
+    description: string;
+    duration: number;
+  }>>([]);
 
   const handleGoalSave = (e: React.FormEvent) => {
     e.preventDefault();
     setIsEditingGoal(false);
-    // Here you could add API call to save the goal
   };
 
-
+  const endSessionEarly = () => {
+    const completedMinutes = Math.floor((sessionDuration * 60 - time) / 60);
+    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    setSessionHistory(prev => [...prev, {
+      time: currentTime,
+      description: focusText,
+      duration: completedMinutes
+    }]);
+    
+    setCompletedMinutes(prev => prev + completedMinutes);
+    setIsRunning(false);
+    setTime(60 * 60);
+    setFocusText('');
+    toast.success('Session ended early');
+  };
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -45,32 +69,24 @@ export default function Page() {
       }
     };
   }, [isRunning, time]);
-  
-  useEffect(() => {
-    if (time === 0) {
-      setIsRunning(false);
-      toast.success('Time is up! 🎉');
-    }
-  }, [time]);
-  
-  // Add this useEffect to update completed minutes when a session ends
-  useEffect(() => {
-    if (time === 0 && isRunning) {
-      // Calculate the actual session duration that was completed
-      const sessionDuration = Math.floor(time / 60); // Convert seconds to minutes
-      setCompletedMinutes(prev => prev + sessionDuration);
-      setIsRunning(false);
-      toast.success('Time is up! 🎉');
-    }
-  }, [time, isRunning]);
 
   useEffect(() => {
     if (time === 0 && isRunning) {
+      const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      setSessionHistory(prev => [...prev, {
+        time: currentTime,
+        description: focusText,
+        duration: sessionDuration
+      }]);
+      
       setCompletedMinutes(prev => prev + sessionDuration);
       setIsRunning(false);
+      setTime(60 * 60);
+      setFocusText('');
       toast.success('Time is up! 🎉');
     }
-  }, [time, isRunning, sessionDuration]);
+  }, [time, isRunning, sessionDuration, focusText]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -82,22 +98,18 @@ export default function Page() {
     setTime(prev => Math.max(0, prev + (minutes * 60)));
   };
 
-
   const toggleTimer = () => {
     if (!isRunning && !focusText) {
       toast.error('Please enter a focus goal');
       return;
     }
-
+    
     setIsRunning(!isRunning);
     if (!isRunning) {
-      setSessionDuration(time / 60); // Store the session duration in minutes
+      setSessionDuration(time / 60);
       toast.success('Focus time started ⏲️');
     }
   };
-
-
-
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -122,9 +134,7 @@ export default function Page() {
 
         <Card className="p-8">
           <div className="text-center">
-            <div 
-              className="text-7xl font-bold tracking-tighter"
-            >
+            <div className="text-7xl font-bold tracking-tighter">
               {formatTime(time)}
             </div>
 
@@ -155,83 +165,87 @@ export default function Page() {
               </Button>
             </div>
 
-            <Button 
-              size="lg"
-              onClick={toggleTimer}
-              className="mt-6 min-w-[200px]"
-            >
-              {isRunning ? 'Pause Session' : 'Start Session'}
-            </Button>
+            <div className="mt-6 flex justify-center gap-2">
+              <Button 
+                size="lg"
+                onClick={toggleTimer}
+                className="min-w-[200px]"
+              >
+                {isRunning ? 'Pause Session' : 'Start Session'}
+              </Button>
+              {isRunning && (
+                <Button 
+                  size="lg"
+                  variant="destructive"
+                  onClick={endSessionEarly}
+                  className="min-w-[200px]"
+                >
+                  End Early
+                </Button>
+              )}
+            </div>
           </div>
         </Card>
 
-        {/* Widget for interacting with ElevenLabs Convai  */} 
         <Card className="p-8">
           <h2 className="mb-4 text-lg font-semibold">Talk to Agent</h2>
           <Conversation />
         </Card>
 
-        {/* Voice Notes section will go here */} 
         <Card className="p-8">
           <h2 className="mb-4 text-lg font-semibold">Voice Notes</h2>
           <VoiceNotes />
         </Card>
 
-      
-        {/* Progress tracking will go here */}
-        
         <Card className="p-8">
           <h2 className="mb-4 text-lg font-semibold">Today's Progress</h2>
-          
           <div className="space-y-6">
-          <div>
-    <h3 className="text-sm font-medium text-gray-500">Daily Goal</h3>
-    {isEditingGoal ? (
-      <form onSubmit={handleGoalSave} className="flex items-center gap-2">
-        <Input
-          type="number"
-          value={dailyGoal}
-          onChange={(e) => setDailyGoal(parseInt(e.target.value) || 0)}
-          className="w-24 text-2xl font-bold"
-          autoFocus
-        />
-        <span className="text-2xl font-bold">focused minutes</span>
-        <Button type="submit" size="sm">Save</Button>
-      </form>
-    ) : (
-      <div 
-        className="flex items-center gap-2 cursor-pointer" 
-        onClick={() => setIsEditingGoal(true)}
-      >
-        <p className="text-2xl font-bold">{dailyGoal} focused minutes</p>
-        <Button variant="ghost" size="sm">Edit</Button>
-      </div>
-    )}
-  </div>
-  {/* Update the Progress section with a two-color progress bar */}
-  <div>
-  <h3 className="text-sm font-medium text-gray-500">Progress</h3>
-  <p className="text-2xl font-bold">{completedMinutes}/{dailyGoal} minutes</p>
-  <div className="mt-2 h-2 w-full rounded-full bg-gray-100">
-    <div 
-      className="h-2 rounded-full bg-blue-600"
-      style={{ 
-        width: `${(completedMinutes / dailyGoal) * 100}%`,
-        transition: 'width 0.3s ease-in-out'
-      }}
-    />
-  </div>
-</div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Daily Goal</h3>
+              {isEditingGoal ? (
+                <form onSubmit={handleGoalSave} className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={dailyGoal}
+                    onChange={(e) => setDailyGoal(parseInt(e.target.value) || 0)}
+                    className="w-24 text-2xl font-bold"
+                    autoFocus
+                  />
+                  <span className="text-2xl font-bold">focused minutes</span>
+                  <Button type="submit" size="sm">Save</Button>
+                </form>
+              ) : (
+                <div 
+                  className="flex items-center gap-2 cursor-pointer" 
+                  onClick={() => setIsEditingGoal(true)}
+                >
+                  <p className="text-2xl font-bold">{dailyGoal} focused minutes</p>
+                  <Button variant="ghost" size="sm">Edit</Button>
+                </div>
+              )}
+            </div>
 
             <div>
-              <h3 className="text-sm font-medium text-gray-500">Session Focus History</h3>
-              <SessionHistory />
+              <h3 className="text-sm font-medium text-gray-500">Progress</h3>
+              <p className="text-2xl font-bold">{completedMinutes}/{dailyGoal} minutes</p>
+              <div className="mt-2 h-2 w-full rounded-full bg-gray-100">
+                <div 
+                  className="h-2 rounded-full bg-blue-600"
+                  style={{ 
+                    width: `${(completedMinutes / dailyGoal) * 100}%`,
+                    opacity: completedMinutes > 0 ? 1 : 0,
+                    transition: 'width 0.3s ease-in-out'
+                  }}
+                />
+              </div>
             </div>
+
+            <div>
+    <h3 className="text-sm font-medium text-gray-500">Session Focus History</h3>
+    <SessionHistory sessions={sessionHistory} />
+  </div>
           </div>
         </Card>
-      
-        {/* Spotify embed will go here <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/26fAdaxFASXkMyZMl71bGl?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe> */}
-        
       </div>
     </div>
   );
