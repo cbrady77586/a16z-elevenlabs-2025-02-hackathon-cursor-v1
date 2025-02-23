@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { VoiceNotes } from '@/components/voice-notes';
 import { Conversation } from '@/components/conversation';
 import { Copy as CopyIcon, Share as ShareIcon, Trash as TrashIcon } from 'lucide-react'
+import { SessionHistory } from '@/components/session-history';
 
 
 export default function Page() {
@@ -16,6 +17,14 @@ export default function Page() {
   const [isRunning, setIsRunning] = useState(false);
   const [focusText, setFocusText] = useState('');
   const [mode, setMode] = useState<'focus' | 'break'>('focus');
+  const [dailyGoal, setDailyGoal] = useState(180);
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+
+  const handleGoalSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsEditingGoal(false);
+    // Here you could add API call to save the goal
+  };
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -144,6 +153,48 @@ export default function Page() {
 
       
         {/* Progress tracking will go here */}
+        
+        <Card className="p-8">
+          <h2 className="mb-4 text-lg font-semibold">Today's Progress</h2>
+          
+          <div className="space-y-6">
+          <div>
+    <h3 className="text-sm font-medium text-gray-500">Daily Goal</h3>
+    {isEditingGoal ? (
+      <form onSubmit={handleGoalSave} className="flex items-center gap-2">
+        <Input
+          type="number"
+          value={dailyGoal}
+          onChange={(e) => setDailyGoal(parseInt(e.target.value) || 0)}
+          className="w-24 text-2xl font-bold"
+          autoFocus
+        />
+        <span className="text-2xl font-bold">focused minutes</span>
+        <Button type="submit" size="sm">Save</Button>
+      </form>
+    ) : (
+      <div 
+        className="flex items-center gap-2 cursor-pointer" 
+        onClick={() => setIsEditingGoal(true)}
+      >
+        <p className="text-2xl font-bold">{dailyGoal} focused minutes</p>
+        <Button variant="ghost" size="sm">Edit</Button>
+      </div>
+    )}
+  </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Progress</h3>
+              <p className="text-2xl font-bold">120/180 minutes</p>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Session Focus History</h3>
+              <SessionHistory />
+            </div>
+          </div>
+        </Card>
+      
         {/* Spotify embed will go here */}
       </div>
     </div>
