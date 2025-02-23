@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,12 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { VoiceNotes } from '@/components/voice-notes';
 import { Conversation } from '@/components/conversation';
+import { Copy as CopyIcon, Share as ShareIcon, Trash as TrashIcon } from 'lucide-react';
 import { SessionHistory } from '@/components/session-history';
+import { useEffect, useRef } from 'react';
 import { AnimatedBackground } from '@/components/animated-background';
+
+
 
 type Session = {
   time: string;
@@ -26,11 +30,15 @@ export default function Page() {
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [completedMinutes, setCompletedMinutes] = useState(0);
   const [sessionDuration, setSessionDuration] = useState(0);
-  const [sessionHistory, setSessionHistory] = useState<Session[]>([]);
+  const [sessionHistory, setSessionHistory] = useState<Array<{
+    time: string;
+    description: string;
+    duration: number;
+  }>>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    audioRef.current = new Audio('/sounds/timer-complete-calming.mp3');
+    audioRef.current = new Audio('/sounds/timer-complete-calming.mp3'); // Sound that plays when the timer is up
   }, []);
 
   const handleGoalSave = (e: React.FormEvent) => {
@@ -64,28 +72,6 @@ export default function Page() {
         toast.success('Break time started ⏲️');
       }
     }
-  };
-
-  const endSessionEarly = () => {
-    const completedMinutes = Math.ceil((sessionDuration * 60 - time) / 60);
-    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    if (completedMinutes > 0) {
-      setSessionHistory(prev => [...prev, {
-        time: currentTime,
-        description: focusText,
-        duration: completedMinutes
-      }]);
-      
-      if (mode === 'focus') {
-        setCompletedMinutes(prev => prev + completedMinutes);
-      }
-    }
-    
-    setIsRunning(false);
-    setTime(60 * 60);
-    setFocusText('');
-    toast.success('Session ended early');
   };
 
   // Timer effect
@@ -130,15 +116,52 @@ export default function Page() {
   }, [time, isRunning, sessionDuration, focusText, mode]);
 
   return (
-    <div className="flex-1 space-y-8 p-8">
+    <div className="flex-1 space-y-8 p-8 relative">
       <AnimatedBackground isActive={isRunning} />
+
+  // The ONLY endSessionEarly function
+  const endSessionEarly = () => {
+    const completedMinutes = Math.ceil((sessionDuration * 60 - time) / 60);
+    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    if (completedMinutes > 0) {
+      setSessionHistory(prev => [...prev, {
+        time: currentTime,
+        description: focusText,
+        duration: completedMinutes
+      }]);
+      
+      if (mode === 'focus') {
+        setCompletedMinutes(prev => prev + completedMinutes);
+      }
+    }
+    
+    setIsRunning(false);
+    setTime(60 * 60);
+    setFocusText('');
+    toast.success('Session ended early');
+  };
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://elevenlabs.io/convai-widget/index.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  return (
+    <div className="flex-1 space-y-8 p-8">
       <div className="mx-auto max-w-2xl space-y-6">
-      <Input
-  placeholder="What's your focus for this session?"
-  value={focusText}
-  onChange={(e) => setFocusText(e.target.value)}
-  className="text-center text-lg input-focus-ring"
-/>
+        <Input
+          placeholder="What's your focus for this session?"
+          value={focusText}
+          onChange={(e) => setFocusText(e.target.value)}
+          className="text-center text-lg"
+        />
 
         <Card className="p-8">
           <div className="text-center space-y-4">
@@ -227,58 +250,60 @@ export default function Page() {
           <VoiceNotes />
         </Card>
 
-        {/* Progress Card */}
         <Card className="p-8">
-  <h2 className="mb-4 text-lg font-semibold">Today's Progress</h2>
-  <div className="space-y-6">
-    <div>
-      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Daily Goal</h3>
-      {isEditingGoal ? (
-        <form onSubmit={handleGoalSave} className="flex items-center gap-2">
-          <Input
-            type="number"
-            value={dailyGoal}
-            onChange={(e) => setDailyGoal(parseInt(e.target.value) || 0)}
-            className="w-24"
-            autoFocus
-          />
-          <span className="text-sm text-gray-500 dark:text-gray-400">focused minutes</span>
-          <Button type="submit" size="sm">Save</Button>
-        </form>
-      ) : (
-        <div 
-          className="flex items-center gap-2 cursor-pointer" 
-          onClick={() => setIsEditingGoal(true)}
-        >
-          <p className="text-sm text-gray-500 dark:text-gray-400">{dailyGoal} focused minutes</p>
-          <Button variant="ghost" size="sm">Edit</Button>
-        </div>
-      )}
-    </div>
+          <h2 className="mb-4 text-lg font-semibold">Today's Progress</h2>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Daily Goal</h3>
+              {isEditingGoal ? (
+                <form onSubmit={handleGoalSave} className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={dailyGoal}
+                    onChange={(e) => setDailyGoal(parseInt(e.target.value) || 0)}
+                    className="w-24 text-2xl font-bold"
+                    autoFocus
+                  />
+                  <span className="text-2xl font-bold">focused minutes</span>
+                  <Button type="submit" size="sm">Save</Button>
+                </form>
+              ) : (
+                <div 
+                  className="flex items-center gap-2 cursor-pointer" 
+                  onClick={() => setIsEditingGoal(true)}
+                >
+                  <p className="text-sm text-gray-300">{dailyGoal} focused minutes</p>
+                  <Button variant="ghost" size="sm">Edit</Button>
+                </div>
+              )}
+            </div>
 
-    <div>
-      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Progress</h3>
-      <p className="text-sm text-gray-500 dark:text-gray-400">
-        {completedMinutes} minutes complete ({Math.round((completedMinutes / dailyGoal) * 100)}%)
-      </p>
-      <div className="mt-2 h-2 w-full rounded-full progress-container">
-        <motion.div 
-          className="h-2 rounded-full progress-bar"
-          initial={false}
-          animate={{ 
-            width: `${(completedMinutes / dailyGoal) * 100}%`
-          }}
-          transition={{ duration: 0.3 }}
-        />
-      </div>
-    </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Progress</h3>
+              <p className="text-sm text-gray-300">
+                {completedMinutes} minutes complete ({Math.round((completedMinutes / dailyGoal) * 100)}%)
+              </p>
+              <div className="mt-2 h-2 w-full rounded-full bg-[#1C1C1C]">
+                <motion.div 
+                  className="h-2 rounded-full"
+                  style={{
+                    backgroundColor: completedMinutes > 0 ? 'white' : 'transparent'
+                  }}
+                  initial={false}
+                  animate={{ 
+                    width: `${(completedMinutes / dailyGoal) * 100}%`
+                  }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+            </div>
 
-    <div>
-      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Session Focus History</h3>
-      <SessionHistory sessions={sessionHistory} />
-    </div>
-  </div>
-</Card>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Session Focus History</h3>
+              <SessionHistory sessions={sessionHistory} />
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );

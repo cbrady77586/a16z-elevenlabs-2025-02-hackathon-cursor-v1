@@ -172,3 +172,72 @@ body {
   background-size: auto;
   border-style: none;
 }
+
+/* Update table styles */
+table {
+  @apply w-full border-collapse border border-gray-200 dark:border-gray-800;
+}
+
+tr {
+  @apply border-b border-gray-200 dark:border-gray-800;
+}
+
+th, td {
+  @apply p-2 text-sm whitespace-nowrap;
+}
+
+/* Optional: add min-width to prevent wrapping */
+.session-history-table {
+  @apply min-w-[600px] overflow-x-auto;
+}
+
+.progress-container {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+.progress-bar {
+  @apply bg-gray-800 dark:bg-gray-100;
+}
+
+/* input focus styles */
+/* Option 1: Thinner, more subtle ring with slight offset 
+.input-focus-ring {
+  @apply focus-visible:ring-[0.5px] focus-visible:ring-offset-0 focus-visible:ring-gray-300 dark:focus-visible:ring-gray-700 focus-visible:outline-none;
+}*/
+
+/* Option 2: Border-based focus state instead of ring
+.input-focus-ring {
+  @apply focus-visible:border-gray-300 dark:focus-visible:border-gray-700 focus-visible:outline-none transition-colors duration-200;
+} */
+
+/* Option 3: Very subtle ring with transparency 
+.input-focus-ring {
+  @apply focus-visible:ring-[0.5px] focus-visible:ring-gray-400/30 dark:focus-visible:ring-gray-600/30 focus-visible:outline-none;
+}*/
+
+/* Force override of focus styles */
+/* First, keep the Tailwind utilities */
+.input-focus-ring {
+  @apply focus-visible:ring-[0.5px] focus-visible:ring-gray-400/30 dark:focus-visible:ring-gray-600/30 focus-visible:outline-none;
+}
+
+/* Then add specific CSS overrides */
+.input-focus-ring:focus,
+.input-focus-ring:focus-visible {
+  outline: none !important;
+  border-color: transparent !important;
+  box-shadow: 0 0 0 0.5px rgba(156, 163, 175, 0.3) !important;
+}
+
+.dark .input-focus-ring:focus,
+.dark .input-focus-ring:focus-visible {
+  box-shadow: 0 0 0 0.5px rgba(75, 85, 99, 0.3) !important;
+}
+
+input {
+  border-color: rgb(229, 231, 235) !important;
+}
+
+.dark input {
+  border-color: rgb(31, 41, 55) !important;
+}
