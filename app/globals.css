@@ -241,3 +241,8 @@ input {
 .dark input {
   border-color: rgb(31, 41, 55) !important;
 }
+
+.focus-session-active.input-focus-ring {
+  @apply !bg-card !text-foreground;
+  transition: none !important;
+}

@@ -137,7 +137,7 @@ export default function Page() {
   placeholder="What's your focus for this session?"
   value={focusText}
   onChange={(e) => setFocusText(e.target.value)}
-  className="text-center text-lg input-focus-ring"
+  className={`text-center text-lg input-focus-ring ${isRunning ? 'focus-session-active' : ''}`}
 />
 
         <Card className="p-8">
