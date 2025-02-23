@@ -19,12 +19,16 @@ export default function Page() {
   const [mode, setMode] = useState<'focus' | 'break'>('focus');
   const [dailyGoal, setDailyGoal] = useState(180);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [completedMinutes, setCompletedMinutes] = useState(0);
+  const [sessionDuration, setSessionDuration] = useState(0);
 
   const handleGoalSave = (e: React.FormEvent) => {
     e.preventDefault();
     setIsEditingGoal(false);
     // Here you could add API call to save the goal
   };
+
+
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -49,6 +53,24 @@ export default function Page() {
     }
   }, [time]);
   
+  // Add this useEffect to update completed minutes when a session ends
+  useEffect(() => {
+    if (time === 0 && isRunning) {
+      // Calculate the actual session duration that was completed
+      const sessionDuration = Math.floor(time / 60); // Convert seconds to minutes
+      setCompletedMinutes(prev => prev + sessionDuration);
+      setIsRunning(false);
+      toast.success('Time is up! 🎉');
+    }
+  }, [time, isRunning]);
+
+  useEffect(() => {
+    if (time === 0 && isRunning) {
+      setCompletedMinutes(prev => prev + sessionDuration);
+      setIsRunning(false);
+      toast.success('Time is up! 🎉');
+    }
+  }, [time, isRunning, sessionDuration]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -60,17 +82,21 @@ export default function Page() {
     setTime(prev => Math.max(0, prev + (minutes * 60)));
   };
 
+
   const toggleTimer = () => {
     if (!isRunning && !focusText) {
       toast.error('Please enter a focus goal');
       return;
     }
-    
+
     setIsRunning(!isRunning);
     if (!isRunning) {
+      setSessionDuration(time / 60); // Store the session duration in minutes
       toast.success('Focus time started ⏲️');
     }
   };
+
+
 
 
   useEffect(() => {
@@ -182,11 +208,20 @@ export default function Page() {
       </div>
     )}
   </div>
-
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Progress</h3>
-              <p className="text-2xl font-bold">120/180 minutes</p>
-            </div>
+  {/* Update the Progress section with a two-color progress bar */}
+  <div>
+  <h3 className="text-sm font-medium text-gray-500">Progress</h3>
+  <p className="text-2xl font-bold">{completedMinutes}/{dailyGoal} minutes</p>
+  <div className="mt-2 h-2 w-full rounded-full bg-gray-100">
+    <div 
+      className="h-2 rounded-full bg-blue-600"
+      style={{ 
+        width: `${(completedMinutes / dailyGoal) * 100}%`,
+        transition: 'width 0.3s ease-in-out'
+      }}
+    />
+  </div>
+</div>
 
             <div>
               <h3 className="text-sm font-medium text-gray-500">Session Focus History</h3>
@@ -195,7 +230,8 @@ export default function Page() {
           </div>
         </Card>
       
-        {/* Spotify embed will go here */}
+        {/* Spotify embed will go here <iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/26fAdaxFASXkMyZMl71bGl?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe> */}
+        
       </div>
     </div>
   );
