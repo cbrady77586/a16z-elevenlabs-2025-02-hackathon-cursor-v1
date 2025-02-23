@@ -37,60 +37,6 @@ export default function Page() {
     setIsEditingGoal(false);
   };
 
-  const endSessionEarly = () => {
-    const completedMinutes = Math.ceil((sessionDuration * 60 - time) / 60);
-    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    if (completedMinutes > 0) {
-      setSessionHistory(prev => [...prev, {
-        time: currentTime,
-        description: focusText,
-        duration: completedMinutes
-      }]);
-      
-      setCompletedMinutes(prev => prev + completedMinutes);
-    }
-    
-    setIsRunning(false);
-    setTime(60 * 60);
-    setFocusText('');
-    toast.success('Session ended early');
-  };
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-    
-    if (isRunning && time > 0) {
-      intervalId = setInterval(() => {
-        setTime((prevTime) => prevTime - 1);
-      }, 1000);
-    }
-  
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [isRunning, time]);
-
-  useEffect(() => {
-    if (time === 0 && isRunning) {
-      const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
-      setSessionHistory(prev => [...prev, {
-        time: currentTime,
-        description: focusText,
-        duration: sessionDuration
-      }]);
-      
-      setCompletedMinutes(prev => prev + sessionDuration);
-      setIsRunning(false);
-      setTime(60 * 60);
-      setFocusText('');
-      toast.success('Time is up! 🎉');
-    }
-  }, [time, isRunning, sessionDuration, focusText]);
-
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -102,16 +48,82 @@ export default function Page() {
   };
 
   const toggleTimer = () => {
-    if (!isRunning && !focusText) {
+    if (!isRunning && mode === 'focus' && !focusText) {
       toast.error('Please enter a focus goal');
       return;
     }
     
     setIsRunning(!isRunning);
     if (!isRunning) {
-      setSessionDuration(time / 60);
-      toast.success('Focus time started ⏲️');
+      setSessionDuration(Math.ceil(time / 60));
+      if (mode === 'focus') {
+        toast.success('Focus time started ⏲️');
+      } else {
+        setFocusText('Break');
+        toast.success('Break time started ⏲️');
+      }
     }
+  };
+
+  // Timer effect
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    if (isRunning && time > 0) {
+      intervalId = setInterval(() => {
+        setTime((prevTime) => prevTime - 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isRunning, time]);
+
+  // Timer completion effect
+  useEffect(() => {
+    if (time === 0 && isRunning) {
+      const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      setSessionHistory(prev => [...prev, {
+        time: currentTime,
+        description: focusText,
+        duration: sessionDuration
+      }]);
+      
+      if (mode === 'focus') {
+        setCompletedMinutes(prev => prev + sessionDuration);
+      }
+      setIsRunning(false);
+      setTime(60 * 60);
+      setFocusText('');
+      toast.success('Time is up! 🎉');
+    }
+  }, [time, isRunning, sessionDuration, focusText, mode]);
+
+  // The ONLY endSessionEarly function
+  const endSessionEarly = () => {
+    const completedMinutes = Math.ceil((sessionDuration * 60 - time) / 60);
+    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    if (completedMinutes > 0) {
+      setSessionHistory(prev => [...prev, {
+        time: currentTime,
+        description: focusText,
+        duration: completedMinutes
+      }]);
+      
+      if (mode === 'focus') {
+        setCompletedMinutes(prev => prev + completedMinutes);
+      }
+    }
+    
+    setIsRunning(false);
+    setTime(60 * 60);
+    setFocusText('');
+    toast.success('Session ended early');
   };
 
   useEffect(() => {
@@ -135,7 +147,7 @@ export default function Page() {
           className="text-center text-lg"
         />
 
-<Card className="p-8">
+        <Card className="p-8">
           <div className="text-center space-y-4">
             <div className="text-6xl font-bold mb-8">
               {formatTime(time)}
@@ -266,9 +278,9 @@ export default function Page() {
             </div>
 
             <div>
-    <h3 className="text-sm font-medium text-gray-500">Session Focus History</h3>
-    <SessionHistory sessions={sessionHistory} />
-  </div>
+              <h3 className="text-sm font-medium text-gray-500">Session Focus History</h3>
+              <SessionHistory sessions={sessionHistory} />
+            </div>
           </div>
         </Card>
       </div>
