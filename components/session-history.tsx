@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Clipboard, Send, Trash } from 'lucide-react';
+import { toast } from 'sonner';
 
 type Session = {
   time: string;
@@ -10,6 +11,7 @@ type Session = {
 interface SessionHistoryProps {
   sessions: Session[];
 }
+
 
 export function SessionHistory({ sessions }: SessionHistoryProps) {
     if (!sessions?.length) {
@@ -29,16 +31,27 @@ export function SessionHistory({ sessions }: SessionHistoryProps) {
           </tr>
         </thead>
         <tbody>
-          {sessions.map((session, index) => (
+        {sessions.map((session, index) => (
             <tr key={index}>
               <td><input type="checkbox" /></td>
               <td className="py-2">{session.time}</td>
               <td className="py-2">{session.duration} min</td>
               <td>{session.description}</td>
               <td className="text-right">
-                <Button variant="ghost" size="icon"><Clipboard className="h-4 w-4" /></Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => {
+                    const text = `Time: ${session.time}\nDuration: ${session.duration} min\nDescription: ${session.description}`;
+                    navigator.clipboard.writeText(text)
+                      .then(() => toast.success("Copied to clipboard"))
+                      .catch(() => toast.error("Failed to copy"));
+                  }}
+                >
+                  <Clipboard className="h-4 w-4" />
+                </Button>
                 <Button variant="ghost" size="icon"><Send className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon"><Trash className="h-4 w-4" /></Button>
+                {/* <Button variant="ghost" size="icon"><Trash className="h-4 w-4" /></Button> */}
               </td>
             </tr>
           ))}

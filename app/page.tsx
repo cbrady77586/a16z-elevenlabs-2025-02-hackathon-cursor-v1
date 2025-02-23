@@ -256,7 +256,7 @@ export default function Page() {
                   className="flex items-center gap-2 cursor-pointer" 
                   onClick={() => setIsEditingGoal(true)}
                 >
-                  <p className="text-2xl font-bold">{dailyGoal} focused minutes</p>
+                  <p className="text-sm text-gray-300">{dailyGoal} focused minutes</p>
                   <Button variant="ghost" size="sm">Edit</Button>
                 </div>
               )}
@@ -264,15 +264,20 @@ export default function Page() {
 
             <div>
               <h3 className="text-sm font-medium text-gray-500">Progress</h3>
-              <p className="text-2xl font-bold">{completedMinutes}/{dailyGoal} minutes</p>
-              <div className="mt-2 h-2 w-full rounded-full bg-gray-100">
-                <div 
-                  className="h-2 rounded-full bg-blue-600"
-                  style={{ 
-                    width: `${(completedMinutes / dailyGoal) * 100}%`,
-                    opacity: completedMinutes > 0 ? 1 : 0,
-                    transition: 'width 0.3s ease-in-out'
+              <p className="text-sm text-gray-300">
+                {completedMinutes} minutes complete ({Math.round((completedMinutes / dailyGoal) * 100)}%)
+              </p>
+              <div className="mt-2 h-2 w-full rounded-full bg-[#1C1C1C]">
+                <motion.div 
+                  className="h-2 rounded-full"
+                  style={{
+                    backgroundColor: completedMinutes > 0 ? 'white' : 'transparent'
                   }}
+                  initial={false}
+                  animate={{ 
+                    width: `${(completedMinutes / dailyGoal) * 100}%`
+                  }}
+                  transition={{ duration: 0.3 }}
                 />
               </div>
             </div>
