@@ -281,12 +281,7 @@ export default function Page() {
 </Card>
 
 
-<Card className="p-8">
-          <h2 className="mb-4 text-lg font-semibold">Today's Progress</h2>
-          <div className="space-y-6">
-            {/* ... existing progress card content ... */}
-          </div>
-        </Card>
+
         {/* Add Spotify Playlist Card */}
         <Card className="p-8">
           <h2 className="mb-4 text-lg font-semibold">Playlist</h2>
