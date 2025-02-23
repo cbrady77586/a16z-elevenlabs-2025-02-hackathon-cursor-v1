@@ -135,13 +135,35 @@ export default function Page() {
           className="text-center text-lg"
         />
 
-        <Card className="p-8">
-          <div className="text-center">
-            <div className="text-7xl font-bold tracking-tighter">
+<Card className="p-8">
+          <div className="text-center space-y-4">
+            <div className="text-6xl font-bold mb-8">
               {formatTime(time)}
             </div>
 
-            <div className="mt-8 flex justify-center gap-4">
+            <div>
+              <p className="text-sm text-gray-500 mb-2">For Demo Purposes</p>
+              <div className="flex justify-center gap-4">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setTime(30)}
+                  disabled={isRunning}
+                >
+                  30s
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setTime(60)}
+                  disabled={isRunning}
+                >
+                  1m
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex justify-center gap-4">
               <Button 
                 variant="outline" 
                 size="sm"
@@ -167,26 +189,26 @@ export default function Page() {
                 +5m
               </Button>
             </div>
+          </div>
 
-            <div className="mt-6 flex justify-center gap-2">
+          <div className="mt-6 flex justify-center gap-2">
+            <Button 
+              size="lg"
+              onClick={toggleTimer}
+              className="min-w-[200px]"
+            >
+              {isRunning ? 'Pause Session' : 'Start Session'}
+            </Button>
+            {isRunning && (
               <Button 
                 size="lg"
-                onClick={toggleTimer}
+                variant="destructive"
+                onClick={endSessionEarly}
                 className="min-w-[200px]"
               >
-                {isRunning ? 'Pause Session' : 'Start Session'}
+                End Early
               </Button>
-              {isRunning && (
-                <Button 
-                  size="lg"
-                  variant="destructive"
-                  onClick={endSessionEarly}
-                  className="min-w-[200px]"
-                >
-                  End Early
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         </Card>
 
