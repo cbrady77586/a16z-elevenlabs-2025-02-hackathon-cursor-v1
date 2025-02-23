@@ -1,44 +1,113 @@
-import Link from 'next/link';
+'use client';
 
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { demos } from '@/lib/demos';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import { VoiceNotes } from '@/components/voice-notes';
 
 export default function Page() {
+  const [time, setTime] = useState(60 * 60); // 60 minutes in seconds
+  const [isRunning, setIsRunning] = useState(false);
+  const [focusText, setFocusText] = useState('');
+  const [mode, setMode] = useState<'focus' | 'break'>('focus');
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  const adjustTime = (minutes: number) => {
+    setTime(prev => Math.max(0, prev + (minutes * 60)));
+  };
+
+  const toggleTimer = () => {
+    if (!isRunning && !focusText) {
+      toast.error('Please enter a focus goal');
+      return;
+    }
+    
+    setIsRunning(!isRunning);
+    if (!isRunning) {
+      toast.success('Focus time started ⏲️');
+    }
+  };
+
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://elevenlabs.io/convai-widget/index.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   return (
-    <div className="space-y-8 p-3.5 lg:p-6">
-      <h1 className="text-xl font-bold">Examples</h1>
+    <div className="flex-1 space-y-8 p-8">
+      <div className="mx-auto max-w-2xl space-y-6">
+        <Input
+          placeholder="What's your focus for this session?"
+          value={focusText}
+          onChange={(e) => setFocusText(e.target.value)}
+          className="text-center text-lg"
+        />
 
-      <div className="space-y-10">
-        {demos.map((section) => {
-          return (
-            <div key={section.name} className="space-y-5">
-              <div className="text-foreground/80 text-xs font-bold uppercase tracking-wider">
-                {section.name}
-              </div>
+        <Card className="p-8">
+          <div className="text-center">
+            <motion.div 
+              className="text-7xl font-bold tracking-tighter"
+              animate={{ scale: isRunning ? [1, 1.02, 1] : 1 }}
+              transition={{ repeat: isRunning ? Infinity : 0, duration: 2 }}
+            >
+              {formatTime(time)}
+            </motion.div>
 
-              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                {section.items.map((item) => {
-                  return (
-                    <Link href={`/${item.slug}`} key={item.name}>
-                      <Card className="border-gradient rounded-lg p-px shadow-lg">
-                        <div className="bg-card hover:bg-accent group rounded-lg">
-                          <div className="block space-y-1.5 px-5 py-3">
-                            <div>
-                              <div className="font-bold">{item.name}</div>
-                              {item.description ? (
-                                <div className="line-clamp-3 text-sm">{item.description}</div>
-                              ) : null}
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    </Link>
-                  );
-                })}
-              </div>
+            <div className="mt-8 flex justify-center gap-4">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => adjustTime(-5)}
+                disabled={isRunning}
+              >
+                -5m
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-w-[100px]"
+                onClick={() => setMode(mode === 'focus' ? 'break' : 'focus')}
+              >
+                {mode === 'focus' ? 'Focus' : 'Break'}
+              </Button>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={() => adjustTime(5)}
+                disabled={isRunning}
+              >
+                +5m
+              </Button>
             </div>
-          );
-        })}
+
+            <Button 
+              size="lg"
+              onClick={toggleTimer}
+              className="mt-6 min-w-[200px]"
+            >
+              {isRunning ? 'Pause Session' : 'Start Session'}
+            </Button>
+          </div>
+        </Card>
+
+        {/* Voice Notes section will go here */}
+        {/* Progress tracking will go here */}
+        {/* Spotify embed will go here */}
       </div>
     </div>
   );

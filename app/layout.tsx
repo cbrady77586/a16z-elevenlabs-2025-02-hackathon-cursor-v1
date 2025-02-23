@@ -8,20 +8,24 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Card } from '@/components/ui/card';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
+import { Button } from '@/components/ui/button';
+
 
 import './globals.css';
 
+
+
 export const metadata: Metadata = {
   title: {
-    default: 'ElevenLabs Next.js Playground',
-    template: '%s | ElevenLabs Next.js',
+    default: 'FocusFlow',
+    template: '%s | FocusFlow',
   },
-  metadataBase: new URL('https://elevenlabs-playground.vercel.app'),
-  description: 'A Next.JS playground to explore ElevenLabs capabilities.',
+  metadataBase: new URL('https://focusflow.vercel.app'),
+  description: 'A modern Pomodoro timer with voice notes and focus tracking.',
   openGraph: {
-    title: 'ElevenLabs Next.js Playground',
-    description: 'A playground to explore ElevenLabs capabilities.',
-    images: [`/api/og?title=ElevenLabs Next.js Playground`],
+    title: 'FocusFlow',
+    description: 'A modern Pomodoro timer with voice notes and focus tracking.',
+    images: [`/api/og?title=FocusFlow`],
   },
   twitter: {
     card: 'summary_large_image',
@@ -29,9 +33,6 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const apiKeyResult = await getApiKey();
-  const apiKey = apiKeyResult.ok ? apiKeyResult.value : null;
-
   return (
     <html lang="en" suppressHydrationWarning className="dark">
       <body>
@@ -42,24 +43,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           forcedTheme="dark"
           disableTransitionOnChange
         >
-          <KeyProvider apiKey={apiKey}>
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset className="background-gradient">
-                <header className="relative flex h-[60px] shrink-0 items-center justify-center">
-                  <SidebarTrigger className="absolute left-3" />
-                </header>
-                <div className="p-4">
-                  <div className="mx-auto max-w-4xl space-y-3 px-2 pt-20 lg:px-8 lg:py-8">
-                    <Byline />
-                    <Card className="border-gradient rounded-lg p-px shadow-lg">
-                      <div className="bg-card rounded-lg">{children}</div>
-                    </Card>
-                  </div>
+          <div className="min-h-screen">
+            <header className="border-b">
+              <div className="flex h-14 items-center px-4 md:px-6">
+                <div className="flex items-center gap-4">
+                  <h1 className="text-xl font-semibold">FocusFlow</h1>
                 </div>
-              </SidebarInset>
-            </SidebarProvider>
-          </KeyProvider>
+                <div className="ml-auto flex items-center gap-2">
+                  <Button variant="ghost" size="sm">Calming</Button>
+                  <Button variant="ghost" size="sm">Energizing</Button>
+                  <Button variant="ghost" size="sm">Sign Out</Button>
+                </div>
+              </div>
+            </header>
+            <main className="flex min-h-[calc(100vh-3.5rem)] flex-1 flex-col">
+              {children}
+            </main>
+          </div>
           <Toaster />
         </ThemeProvider>
       </body>
