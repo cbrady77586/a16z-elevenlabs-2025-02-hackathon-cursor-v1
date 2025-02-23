@@ -2,6 +2,8 @@
 
 import { useConversation } from '@11labs/react';
 import { useCallback } from 'react';
+import { Mic, Square } from 'lucide-react'
+import { Button } from './ui/button'
 
 export function Conversation() {
   const conversation = useConversation({

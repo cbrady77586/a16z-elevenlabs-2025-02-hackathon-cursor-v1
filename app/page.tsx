@@ -8,8 +8,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { VoiceNotes } from '@/components/voice-notes';
 import { Conversation } from '@/components/conversation';
-
-
+import { Copy as CopyIcon, Share as ShareIcon, Trash as TrashIcon } from 'lucide-react'
 
 
 export default function Page() {
@@ -17,6 +16,30 @@ export default function Page() {
   const [isRunning, setIsRunning] = useState(false);
   const [focusText, setFocusText] = useState('');
   const [mode, setMode] = useState<'focus' | 'break'>('focus');
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    if (isRunning && time > 0) {
+      intervalId = setInterval(() => {
+        setTime((prevTime) => prevTime - 1);
+      }, 1000);
+    }
+  
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isRunning, time]);
+  
+  useEffect(() => {
+    if (time === 0) {
+      setIsRunning(false);
+      toast.success('Time is up! 🎉');
+    }
+  }, [time]);
+  
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -64,13 +87,11 @@ export default function Page() {
 
         <Card className="p-8">
           <div className="text-center">
-            <motion.div 
+            <div 
               className="text-7xl font-bold tracking-tighter"
-              animate={{ scale: isRunning ? [1, 1.02, 1] : 1 }}
-              transition={{ repeat: isRunning ? Infinity : 0, duration: 2 }}
             >
               {formatTime(time)}
-            </motion.div>
+            </div>
 
             <div className="mt-8 flex justify-center gap-4">
               <Button 
@@ -109,10 +130,19 @@ export default function Page() {
           </div>
         </Card>
 
-        {/* Voice Notes section will go here */}
-<Conversation />
+        {/* Widget for interacting with ElevenLabs Convai  */} 
+        <Card className="p-8">
+          <h2 className="mb-4 text-lg font-semibold">Talk to Agent</h2>
+          <Conversation />
+        </Card>
 
-        
+        {/* Voice Notes section will go here */} 
+        <Card className="p-8">
+          <h2 className="mb-4 text-lg font-semibold">Voice Notes</h2>
+          <VoiceNotes />
+        </Card>
+
+      
         {/* Progress tracking will go here */}
         {/* Spotify embed will go here */}
       </div>

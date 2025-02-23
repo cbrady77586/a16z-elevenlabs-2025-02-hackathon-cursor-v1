@@ -1,69 +1,60 @@
- 'use client';
-
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { toast } from 'sonner';
-
-interface VoiceNote {
-  timestamp: string;
-  text: string;
-  sent: boolean;
-  id: string;
-}
+import { Clipboard, Send, Trash as TrashIcon } from 'lucide-react';
 
 export function VoiceNotes() {
-    const [notes, setNotes] = useState<VoiceNote[]>([]);
-  
-    return (
-      <Card className="p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Voice Notes</h2>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => toast.success('Notes synced to Notion')}>
-            Sync to Notion
-          </Button>
-        </div>
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <select className="w-full rounded-md border p-2">
+        <option>Please select</option>
+          <option>Copy to Clipboard</option>
+          <option>Semd to Notion</option>
+          <option>Delete</option>
+        </select>
       </div>
-
-      {/* ElevenLabs Convai Widget */}
-      <elevenlabs-convai agent-id="l0kdP0eat20RZqZn1OMR"></elevenlabs-convai><script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
-
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[50px]">Select</TableHead>
-            <TableHead>Time</TableHead>
-            <TableHead>Note</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {notes.map((note) => (
-            <TableRow key={note.id}>
-              <TableCell>
-                <Checkbox checked={note.sent} />
-              </TableCell>
-              <TableCell>{note.timestamp}</TableCell>
-              <TableCell>{note.text}</TableCell>
-              <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    // Handle delete
-                    toast.success('Note deleted');
-                  }}
-                >
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Card>
+      
+      <table className="w-full">
+        <thead>
+          <tr className="text-left text-sm text-gray-500">
+            <th className="w-8 pb-2"><input type="checkbox" /></th>
+            <th className="pb-2">Time</th>
+            <th className="pb-2">Note</th>
+            <th className="pb-2 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td className="py-2">10:30 AM</td>
+            <td>Remember to check the deployment logs for the new feature</td>
+            <td className="text-right">
+              <Button variant="ghost" size="icon"><Clipboard className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon"><Send className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon"><TrashIcon className="h-4 w-4" /></Button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td className="py-2">10:45 AM</td>
+            <td>Schedule meeting with design team about UI updates</td>
+            <td className="text-right">
+              <Button variant="ghost" size="icon"><Clipboard className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon"><Send className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon"><TrashIcon className="h-4 w-4" /></Button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" /></td>
+            <td className="py-2">11:15 AM</td>
+            <td>Look into performance optimization for the database queries</td>
+            <td className="text-right">
+              <Button variant="ghost" size="icon"><Clipboard className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon"><Send className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon"><TrashIcon className="h-4 w-4" /></Button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   );
 }
