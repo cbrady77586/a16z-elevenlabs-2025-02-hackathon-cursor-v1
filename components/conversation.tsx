@@ -90,7 +90,7 @@ export function Conversation() {
 
       <div className="w-full max-w-2xl mt-4">
         {/*<h3 className="text-lg font-semibold mb-2">Conversation History</h3>*/}
-        <div className="border rounded-lg overflow-hidden">
+        {transcripts.length > 0 && (<div className="border rounded-lg overflow-hidden">
           <div className="divide-y">
             {Object.entries(
               transcripts.reduce((acc, entry) => {
@@ -136,9 +136,13 @@ export function Conversation() {
                       variant="ghost"
                       size="icon"
                       onClick={async () => {
-                        const webhookUrl = 'YOUR_WEBHOOK_URL';
+                        const webhookUrl = process.env.NEXT_PUBLIC_N8N_VOICENOTES_WEBHOOK_URL;
+                        if (!webhookUrl) {
+                          toast.error("Webhook URL not configured");
+                          return;
+                        }
                         try {
-                          await fetch(webhookUrl, {
+                          const response = await fetch(webhookUrl, {
                             method: 'POST',
                             headers: {
                               'Content-Type': 'application/json',
@@ -148,9 +152,13 @@ export function Conversation() {
                               conversation: entries,
                             }),
                           });
+                          if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                          }
                           toast.success("Conversation sent successfully");
                         } catch (error) {
-                          toast.error("Failed to send conversation");
+                          console.error('Webhook error:', error);
+                          toast.error(`Failed to send conversation: ${error.message}`);
                         }
                       }}
                     >
@@ -174,6 +182,7 @@ export function Conversation() {
             ))}
           </div>
         </div>
+        )}
       </div>
     </div>
   );

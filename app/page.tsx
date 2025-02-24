@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { VoiceNotes } from '@/components/voice-notes';
 import { Conversation } from '@/components/conversation';
 import { SessionHistory } from '@/components/session-history';
 import { AnimatedBackground } from '@/components/animated-background';
@@ -222,10 +221,7 @@ export default function Page() {
           <Conversation />
         </Card>
 
-        <Card className="p-8">
-          <h2 className="mb-4 text-lg font-semibold">Voice Notes Old</h2>
-          <VoiceNotes />
-        </Card>
+
 
         {/* Progress Card */}
         <Card className="p-8">
