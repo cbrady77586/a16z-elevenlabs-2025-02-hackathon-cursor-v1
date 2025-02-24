@@ -5,6 +5,8 @@ import { useCallback } from 'react';
 import { Mic, Square } from 'lucide-react'
 import { Button } from './ui/button'
 import { useState } from 'react';
+import { Clipboard, Send, Trash } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface TranscriptEntry {
   time: string;
@@ -86,41 +88,92 @@ export function Conversation() {
         <p>Agent is {conversation.isSpeaking ? 'speaking' : 'listening'}</p>
       </div>
 
-
-
       <div className="w-full max-w-2xl mt-4">
-        <h3 className="text-lg font-semibold mb-2">Conversation History</h3>
+        {/*<h3 className="text-lg font-semibold mb-2">Conversation History</h3>*/}
         <div className="border rounded-lg overflow-hidden">
           <div className="divide-y">
-            {transcripts.reduce((acc, entry) => {
-              // Use the first message's timestamp as the conversation identifier
-              const conversationId = acc.length > 0 && acc[acc.length - 1].time === entry.time ? acc[acc.length - 1].id : entry.time;
-              if (!acc.find(conv => conv.id === conversationId)) {
-                acc.push({ id: conversationId, time: entry.time, entries: [] });
-              }
-              acc.find(conv => conv.id === conversationId)?.entries.push(entry);
-              return acc;
-            }, [] as { id: string; time: string; entries: TranscriptEntry[] }[])
-            .map(({ id, time, entries }) => (
-              <div key={id} className="p-4">
-                <div className="text-sm text-gray-500 mb-2">
-                  Conversation started at {time}
-                </div>
-                {entries.map((entry, i) => (
-                  <div key={i} className="mb-2">
-                    <span className="font-semibold">
-                      {entry.isAgent ? 'Agent: ' : 'You: '}
-                    </span>
-                    <span>{entry.text}</span>
+            {Object.entries(
+              transcripts.reduce((acc, entry) => {
+                const conversationId = entry.time;
+                if (!acc[conversationId]) {
+                  acc[conversationId] = [];
+                }
+                acc[conversationId].push(entry);
+                return acc;
+              }, {} as Record<string, TranscriptEntry[]>)
+            ).map(([time, entries]) => (
+
+                <div key={time} className="p-4">
+                <div className="flex flex-col gap-2">
+                  <div className="text-sm text-gray-500">
+                    Conversation started at {time}
                   </div>
-                ))}
+                  <div>
+                    {entries.map((entry, i) => (
+                      <div key={i} className="mb-2">
+                        <span className="font-semibold">
+                          {entry.isAgent ? 'Agent: ' : 'You: '}
+                        </span>
+                        <span>{entry.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        const text = entries
+                          .map(e => `${e.isAgent ? 'Agent' : 'You'}: ${e.text}`)
+                          .join('\n');
+                        navigator.clipboard.writeText(text);
+                        toast("Conversation copied to clipboard");
+                      }}
+                    >
+                      <Clipboard className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={async () => {
+                        const webhookUrl = 'YOUR_WEBHOOK_URL';
+                        try {
+                          await fetch(webhookUrl, {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              time,
+                              conversation: entries,
+                            }),
+                          });
+                          toast.success("Conversation sent successfully");
+                        } catch (error) {
+                          toast.error("Failed to send conversation");
+                        }
+                      }}
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setTranscripts(prev => 
+                          prev.filter(t => t.time !== time)
+                        );
+                        toast("Conversation deleted");
+                      }}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
-
-
-
     </div>
   );
