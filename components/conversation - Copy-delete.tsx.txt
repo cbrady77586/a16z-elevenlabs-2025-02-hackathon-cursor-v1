@@ -86,41 +86,30 @@ export function Conversation() {
         <p>Agent is {conversation.isSpeaking ? 'speaking' : 'listening'}</p>
       </div>
 
-
-
+      {/* Add transcript display */}
       <div className="w-full max-w-2xl mt-4">
         <h3 className="text-lg font-semibold mb-2">Conversation History</h3>
         <div className="border rounded-lg overflow-hidden">
-          <div className="divide-y">
-            {transcripts.reduce((acc, entry) => {
-              // Use the first message's timestamp as the conversation identifier
-              const conversationId = acc.length > 0 && acc[acc.length - 1].time === entry.time ? acc[acc.length - 1].id : entry.time;
-              if (!acc.find(conv => conv.id === conversationId)) {
-                acc.push({ id: conversationId, time: entry.time, entries: [] });
-              }
-              acc.find(conv => conv.id === conversationId)?.entries.push(entry);
-              return acc;
-            }, [] as { id: string; time: string; entries: TranscriptEntry[] }[])
-            .map(({ id, time, entries }) => (
-              <div key={id} className="p-4">
-                <div className="text-sm text-gray-500 mb-2">
-                  Conversation started at {time}
-                </div>
-                {entries.map((entry, i) => (
-                  <div key={i} className="mb-2">
-                    <span className="font-semibold">
-                      {entry.isAgent ? 'Agent: ' : 'You: '}
-                    </span>
-                    <span>{entry.text}</span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left">Time</th>
+                <th className="px-4 py-2 text-left">Message</th>
+                <th className="px-4 py-2 text-left">Speaker</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transcripts.map((entry, index) => (
+                <tr key={index} className="border-t">
+                  <td className="px-4 py-2">{entry.time}</td>
+                  <td className="px-4 py-2">{entry.text}</td>
+                  <td className="px-4 py-2">{entry.isAgent ? 'Agent' : 'You'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
-
-
-
     </div>
   );
+}

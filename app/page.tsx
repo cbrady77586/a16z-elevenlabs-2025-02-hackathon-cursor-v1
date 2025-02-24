@@ -218,12 +218,12 @@ export default function Page() {
         </Card>
 
         <Card className="p-8">
-          <h2 className="mb-4 text-lg font-semibold">Talk to Agent</h2>
+          <h2 className="mb-4 text-lg font-semibold">Voice Notes</h2>
           <Conversation />
         </Card>
 
         <Card className="p-8">
-          <h2 className="mb-4 text-lg font-semibold">Voice Notes</h2>
+          <h2 className="mb-4 text-lg font-semibold">Voice Notes Old</h2>
           <VoiceNotes />
         </Card>
 

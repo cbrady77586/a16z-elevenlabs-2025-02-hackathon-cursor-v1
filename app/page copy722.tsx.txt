@@ -1,0 +1,218 @@
+'use client';
+
+import { Conversation } from "@/components/conversation";
+
+export default function Home() {
+  return (
+    <div className="flex-1 space-y-4 p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">Voice Assistant</h2>
+      </div>
+      <div className="space-y-4">
+        <div className="p-6 bg-card text-card-foreground shadow-sm rounded-lg border">
+          <Conversation />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/*
+import React from 'react';
+import { useConversation } from '@11labs/react';
+import { useCallback } from 'react';
+import { Mic, Square, Clipboard, Send, Trash } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { useState } from 'react';
+import { Conversation } from "@/components/conversation";
+
+interface TranscriptEntry {
+  time: string;
+  text: string;
+  isAgent: boolean;
+}
+
+interface ConversationNote {
+  startTime: string;
+  messages: TranscriptEntry[];
+  isActive: boolean;
+}
+
+export default function Home() {
+  return (
+    <div className="flex-1 space-y-4 p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">Voice Assistant</h2>
+      </div>
+      <div className="space-y-4">
+        <div className="p-6 bg-card text-card-foreground shadow-sm rounded-lg border">
+          <Conversation />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function Conversation() {
+  const [currentNote, setCurrentNote] = useState<ConversationNote | null>(null);
+  const [completedNotes, setCompletedNotes] = useState<ConversationNote[]>([]);
+
+  // Get AI name from env var, fallback to "AI"
+  const AI_NAME = process.env.NEXT_PUBLIC_AI_NAME || 'AI';
+
+  const conversation = useConversation({
+    onConnect: () => {
+      const startTime = new Date().toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit'
+      });
+      setCurrentNote({
+        startTime,
+        messages: [],
+        isActive: true
+      });
+    },
+    onDisconnect: () => {
+      if (currentNote) {
+        setCompletedNotes(prev => [...prev, { ...currentNote, isActive: false }]);
+        setCurrentNote(null);
+      }
+    },
+    onMessage: (message) => {
+      if (message.source === 'ai' || message.source === 'user') {
+        const time = new Date().toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit'
+        });
+        
+        setCurrentNote(prev => prev ? {
+          ...prev,
+          messages: [...prev.messages, {
+            time,
+            text: message.message,
+            isAgent: message.source === 'ai'
+          }]
+        } : null);
+      }
+    },
+    onError: (error) => console.error('Error:', error),
+  });
+
+  const startConversation = useCallback(async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      await conversation.startSession({
+        agentId: process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID,
+      });
+    } catch (error) {
+      console.error('Failed to start conversation:', error);
+    }
+  }, [conversation]);
+
+  const stopConversation = useCallback(async () => {
+    await conversation.endSession();
+  }, [conversation]);
+
+  const copyToClipboard = (note: ConversationNote) => {
+    const text = note.messages.map(m => `${m.isAgent ? AI_NAME : 'You'}: ${m.text}`).join('\n');
+    navigator.clipboard.writeText(text);
+  };
+
+  const sendToWebhook = (note: ConversationNote) => {
+    // Implement webhook logic here
+    console.log('Sending to webhook:', note);
+  };
+
+  const deleteNote = (noteToDelete: ConversationNote) => {
+    setCompletedNotes(prev => prev.filter(note => note !== noteToDelete));
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <div className="flex gap-2">
+        <Button
+          onClick={startConversation}
+          disabled={conversation.status === 'connected'}
+          variant="default"
+        >
+          <Mic className="mr-2 h-4 w-4" />
+          Start Conversation
+        </Button>
+        <Button
+          onClick={stopConversation}
+          disabled={conversation.status !== 'connected'}
+          variant="destructive"
+        >
+          <Square className="mr-2 h-4 w-4" />
+          Stop Conversation
+        </Button>
+      </div>
+
+      <div className="flex flex-col items-center">
+        <p>Status: {conversation.status}</p>
+        <p>Agent is {conversation.isSpeaking ? 'speaking' : 'listening'}</p>
+      </div>
+
+      {(currentNote || completedNotes.length > 0) && (
+        <div className="w-full max-w-2xl mt-4">
+          <div className="border rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="px-4 py-2 text-left align-top">Time</th>
+                  <th className="px-4 py-2 text-left">Conversation</th>
+                  <th className="px-4 py-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentNote && (
+                  <tr className="border-t">
+                    <td className="px-4 py-2 w-24 align-top">{currentNote.startTime}</td>
+                    <td className="px-4 py-2">
+                      <div className="space-y-1">
+                        {currentNote.messages.map((msg, idx) => (
+                          <div key={idx} className={`text-sm ${msg.isAgent ? 'opacity-75' : 'font-medium'}`}>
+                            {msg.isAgent ? `${AI_NAME}: ` : 'You: '}{msg.text}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 text-right">
+                      <span className="text-sm text-gray-500">Recording...</span>
+                    </td>
+                  </tr>
+                )}
+                {completedNotes.map((note, idx) => (
+                  <tr key={idx} className="border-t">
+                    <td className="px-4 py-2 w-24 align-top">{note.startTime}</td>
+                    <td className="px-4 py-2">
+                      <div className="space-y-1">
+                        {note.messages.map((msg, msgIdx) => (
+                          <div key={msgIdx} className={`text-sm ${msg.isAgent ? 'opacity-75' : 'font-medium'}`}>
+                            {msg.isAgent ? `${AI_NAME}: ` : 'You: '}{msg.text}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 text-right">
+                      <Button variant="ghost" size="icon" onClick={() => copyToClipboard(note)}>
+                        <Clipboard className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => sendToWebhook(note)}>
+                        <Send className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => deleteNote(note)}>
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+*/
